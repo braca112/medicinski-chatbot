@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <title>Medicinski Asistent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    textarea { width: 100%; }
+    #response { margin-top: 15px; padding: 10px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>Pitaj medicinskog asistenta:</h2>
+  <textarea id="userInput" rows="5"></textarea><br><br>
+  <button onclick="sendMessage()">Pošalji</button>
+  <p><strong>Odgovor:</strong></p>
+  <div id="response"></div>
+  <p style="font-size: 0.9em; color: gray;">
+    <strong>NAPOMENA:</strong> Ovaj četbot služi isključivo u informativne svrhe. Ne postavlja dijagnoze, ne preporučuje terapije i ne zamenjuje lekarski savet.
+    Za sve zdravstvene probleme obavezno se obratite svom lekaru. Korišćenjem ovog servisa prihvatate da je isključena bilo kakva odgovornost kreatora za posledice korišćenja informacija.
+  </p>
+
+  <script>
+    let maxQuestions = 5;
+    let count = localStorage.getItem("questionCount") || 0;
+
+    async function sendMessage() {
+      if (count >= maxQuestions) {
+        alert("Dostigli ste maksimalni broj pitanja (5). Hvala na korišćenju!");
+        return;
+      }
+
+      const userInput = document.getElementById("userInput").value;
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userInput })
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = data.reply;
+      count++;
+      localStorage.setItem("questionCount", count);
+    }
+  </script>
+</body>
+</html>
