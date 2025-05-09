@@ -1,50 +1,42 @@
-export default async function handler(req, res) {
-  const apiKey = process.env.GROQ_API_KEY;
-  const { message } = req.body;
+const fetch = require("node-fetch");
 
-  if (!apiKey) {
-    return res.status(500).json({ reply: "API ključ nije podešen." });
-  }
-
-  if (!message) {
-    return res.status(400).json({ reply: "Poruka nije poslata." });
-  }
-
-  const payload = {
-    model: "model: "llama-3.3-70b-versatile",",
-    messages: [
-      {
-        role: "system",
-        content: "Ti si medicinski informativni asistent. Nikada ne postavljaš dijagnozu, ne daješ lekove, niti terapiju. Odgovaraš jasno, na srpskom jeziku, i uvek savetuješ korisniku da se obrati lekaru za zvaničan savet."
-      },
-      {
-        role: "user",
-        content: message
-      }
-    ]
-  };
-
+const handler = async (req, res) => {
   try {
+    const messages = req.body.messages;
+
+    if (!messages || messages.length === 0) {
+      return res.status(400).json({ error: "Nema poruka u zahtevu" });
+    }
+
+    // Provera poruka koje dolaze
+    console.log("Received messages:", messages);
+
+    const prompt = messages[0].content;
+
+    // API poziv sa Groq modelom
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",  // Promeni model ako je potrebno
+        messages: req.body.messages,
+      }),
     });
 
     const data = await response.json();
 
-    if (!data.choices || !data.choices[0]) {
-      console.error("Nepredviđen odgovor API-ja:", data);
-      return res.status(500).json({ reply: "Greška pri dobijanju odgovora od asistenta." });
+    if (response.ok) {
+      return res.status(200).json(data);
+    } else {
+      return res.status(response.status).json(data);
     }
-
-    return res.status(200).json({ reply: data.choices[0].message.content });
-
   } catch (error) {
-    console.error("Greška u API pozivu:", error);
-    return res.status(500).json({ reply: "Greška u komunikaciji sa serverom." });
+    console.error("Greška:", error);
+    return res.status(500).json({ error: error.message });
   }
-}
+};
+
+module.exports = handler;
