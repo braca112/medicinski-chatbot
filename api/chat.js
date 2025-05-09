@@ -1,42 +1,35 @@
-const fetch = require("node-fetch");
+import fetch from 'node-fetch';  // Import zamišljene biblioteke (ako koristiš fetch ili bilo koju biblioteku)
 
-const handler = async (req, res) => {
+export default async function handler(req, res) {
   try {
-    const messages = req.body.messages;
+    // Proverava da li je metoda POST
+    if (req.method === 'POST') {
+      const { question } = req.body;
 
-    if (!messages || messages.length === 0) {
-      return res.status(400).json({ error: "Nema poruka u zahtevu" });
-    }
+      // Proveri da li pitanje postoji
+      if (!question) {
+        return res.status(400).json({ error: "Pitanje je obavezno" });
+      }
 
-    // Provera poruka koje dolaze
-    console.log("Received messages:", messages);
+      // Zameniti sa pozivom tvog modela
+      const modelResponse = await fetch('https://api.groq.com/v1/chat/completion', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer YOUR_API_KEY`, // Zameniti sa stvarnim API ključem
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: question }],
+        }),
+      });
 
-    const prompt = messages[0].content;
-
-    // API poziv sa Groq modelom
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",  // Promeni model ako je potrebno
-        messages: req.body.messages,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
+      const data = await modelResponse.json();
       return res.status(200).json(data);
     } else {
-      return res.status(response.status).json(data);
+      return res.status(405).json({ error: 'Metoda nije dozvoljena' });
     }
   } catch (error) {
-    console.error("Greška:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Greška servera' });
   }
-};
-
-module.exports = handler;
+}

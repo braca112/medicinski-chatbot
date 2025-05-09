@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Groq API Test</title>
+</head>
+<body>
+  <h2>Testiraj Groq API ključ</h2>
+  <textarea id="question" rows="4" cols="50" placeholder="Postavi pitanje..."></textarea><br>
+  <button onclick="ask()">Pošalji</button>
+  <pre id="output"></pre>
+
+  <script>
+    async function ask() {
+      const prompt = document.getElementById("question").value;
+      const output = document.getElementById("output");
+
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer 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"  // ← ovde stavi svoj API ključ
+        },
+        body: JSON.stringify({
+          model: "gpt4",
+          messages: [
+            { role: "user", content: prompt }
+          ]
+        })
+      });
+
+      const data = await res.json();
+      output.textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
