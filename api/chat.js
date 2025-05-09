@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   const payload = {
-    model: "llama3-70b-8192",
+    model: "model: "llama-3.3-70b-versatile",",
     messages: [
       {
         role: "system",
