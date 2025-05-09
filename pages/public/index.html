@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicinski Chatbot</title>
+</head>
+<body>
+    <div style="width: 100%; max-width: 600px; margin: auto; padding: 20px;">
+        <h1>Medicinski Chatbot</h1>
+        <form id="chat-form">
+            <label for="user-message">Pitanje:</label><br>
+            <input type="text" id="user-message" name="user-message" required /><br><br>
+            <button type="submit">Pošaljite</button>
+        </form>
+        <div id="response-container" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const message = document.getElementById('user-message').value;
+            const responseContainer = document.getElementById('response-container');
+
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userMessage: message })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                responseContainer.innerHTML = `<p><strong>Odgovor:</strong> ${result.message}</p>`;
+            } else {
+                responseContainer.innerHTML = `<p><strong>Greška:</strong> ${result.error}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
